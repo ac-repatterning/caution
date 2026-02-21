@@ -1,6 +1,15 @@
 """Modules sequences.py"""
+import logging
+import os
+
 import numpy as np
 import pandas as pd
+
+import json
+
+import config
+import src.elements.partitions as pr
+import src.functions.objects
 
 
 class Sequences:
@@ -9,11 +18,17 @@ class Sequences:
     Sequences
     """
 
-    def __init__(self, arguments: dict):
+    def __init__(self, reference: pd.DataFrame, arguments: dict):
         """
 
+        :param reference:
         :param arguments:
         """
+
+        self.__reference = reference
+
+        self.__configurations = config.Config()
+        self.__objects = src.functions.objects.Objects()
 
         # time intervals (hours), and the corresponding number of points that span each time interval
         self.__tau: float  = float(arguments.get('tau'))
@@ -47,10 +62,29 @@ class Sequences:
 
         return weights
 
-    def exc(self, data: pd.DataFrame) -> pd.DataFrame:
+    def __persist(self, values: pd.DataFrame, partition: pr.Partitions) -> str:
+        """
+
+        :param values:
+        :param partition:
+        :return:
+        """
+
+        attributes: pd.Series = self.__reference.loc[self.__reference['ts_id'] == partition.ts_id, :][0]
+        logging.info('ATTRIBUTES:\n%s', attributes)
+
+        string = values.to_json(orient='split')
+        nodes: dict = json.loads(string)
+        nodes.update(attributes.to_dict())
+
+        return self.__objects.write(
+            nodes=nodes, path=os.path.join(self.__configurations.series_, f'{partition.ts_id}.json'))
+
+    def exc(self, data: pd.DataFrame, partition: pr.Partitions) -> pd.DataFrame:
         """
 
         :param data: Consisting of fields (a) timestamp, (b) measure
+        :param partition:
         :return:
         """
 
@@ -67,5 +101,8 @@ class Sequences:
             data={'metric': rates * weights, 'timestamp': __data['timestamp'].values,
                   'sign': np.where(weights < 0, -1, 1)})
         values = values.assign(approximation=values['sign'] * values['metric'])
+
+        # Persist
+        self.__persist(values=values, partition=partition)
 
         return values
