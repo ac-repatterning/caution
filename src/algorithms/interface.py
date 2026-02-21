@@ -7,6 +7,7 @@ import src.algorithms.data
 import src.algorithms.persist
 import src.algorithms.ranking
 import src.algorithms.valuations
+import src.algorithms.sequences
 import src.elements.partitions as pr
 
 
@@ -37,18 +38,6 @@ class Interface:
 
         return keys.to_list()
 
-    @dask.delayed
-    def __get_metrics(self, data: pd.DataFrame, partition: pr.Partitions):
-        """
-
-        :param data:
-        :param partition:
-        :return:
-        """
-
-        return src.algorithms.valuations.Valuations(
-            data=data, partition=partition, arguments=self.__arguments).exc()
-
     def exc(self, partitions: list[pr.Partitions], reference: pd.DataFrame) -> pd.DataFrame:
         """
         streams = src.functions.streams.Streams()
@@ -57,31 +46,35 @@ class Interface:
         :param partitions: The time series partitions.
         :param reference: The reference sheet of gauges.  Each instance encodes the attributes of a gauge.
         :return:
+            maximum, minimum, latest, median, ending, ..., ranking
         """
 
         reference.info()
 
         # Delayed tasks
         __data = dask.delayed(src.algorithms.data.Data(arguments=self.__arguments).exc)
+        __sequences = dask.delayed(src.algorithms.sequences.Sequences(reference=reference, arguments=self.__arguments).exc)
+        __valuations = dask.delayed(src.algorithms.valuations.Valuations().exc)
 
         # Compute
         computations = []
         for partition in partitions:
             keys = self.__get_keys(ts_id=partition.ts_id)
             data = __data(keys=keys)
-            metrics = self.__get_metrics(data=data, partition=partition)
-            computations.append(metrics)
+            sequences = __sequences(data=data, partition=partition)
+            valuations = __valuations(sequences=sequences, partition=partition)
+            computations.append(valuations)
         calculations = dask.compute(computations, scheduler='threads')[0]
 
-        # Merge each instance with its descriptive attributes
-        instances = pd.concat(calculations, ignore_index=True, axis=0)
-        instances = instances.copy().merge(reference, how='left', on=['catchment_id', 'ts_id'])
-        instances['hours'] = self.__arguments.get('frequency') * instances['points']
+        # Merge each row with its descriptive attributes
+        frame = pd.concat(calculations, ignore_index=True, axis=0)
+        frame.dropna(axis=0, how='all', inplace=True)
+        frame = frame.copy().merge(reference, how='left', on=['catchment_id', 'ts_id'])
 
         # Ranking
-        instances = src.algorithms.ranking.Ranking().exc(instances=instances.copy())
+        frame = src.algorithms.ranking.Ranking().exc(frame=frame.copy())
 
         # Persist
-        src.algorithms.persist.Persist(instances=instances).exc()
+        src.algorithms.persist.Persist(frame=frame).exc()
 
-        return instances
+        return frame
