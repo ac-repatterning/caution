@@ -36,7 +36,6 @@ class Interface:
         return self.__objects.write(
             nodes=nodes, path=os.path.join(self.__configurations.menu_, 'menu.json'))
 
-
     def exc(self, reference: pd.DataFrame):
         """
 
@@ -45,10 +44,12 @@ class Interface:
         """
 
         listings = glob.glob(os.path.join(self.__configurations.series_, '*.json'))
-        logging.info(listings)
-
         codes = [int(pathlib.Path(listing).stem) for listing in listings]
-        logging.info(codes)
 
         values = reference.loc[reference['ts_id'].isin(codes), ['ts_id', 'station_name', 'catchment_name']]
-        logging.info(values)
+        values = values.assign(name=values['station_name'] + '/' + values['catchment_name'])
+
+        frame = pd.DataFrame(data={'desc': values['ts_id'].to_numpy(),
+                                   'name': values['name'].to_numpy()})
+
+        self.__menu(frame=frame)
