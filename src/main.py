@@ -25,12 +25,11 @@ def main():
         partitions=partitions, reference=reference)
     frame.info()
 
-    # src.cartography.interface.Interface(
-    #     connector=connector, s3_parameters=s3_parameters, instances=instances).exc(
-    #     n_catchments_visible=arguments.get('rates').get('n_catchments_visible'))
+    src.cartography.interface.Interface(
+        connector=connector, s3_parameters=s3_parameters, frame=frame).exc(
+        n_catchments_visible=arguments.get('rates').get('n_catchments_visible'))
 
-    # src.menu.interface.Interface().exc(
-    #     points_=instances['points'].unique(), frequency=arguments.get('frequency'))
+    src.menu.interface.Interface().exc(reference=reference)
 
     # Transferring calculations to an Amazon S3 (Simple Storage Service) bucket
     # src.transfer.interface.Interface(
