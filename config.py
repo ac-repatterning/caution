@@ -21,6 +21,7 @@ class Config:
         self.points_ = os.path.join(self.risks_, 'points')
         self.menu_ = os.path.join(self.risks_, 'menu')
         self.maps_ = os.path.join(self.risks_, 'maps')
+        self.series_ = os.path.join(self.risks_, 'series')
 
         # Template
         self.s3_parameters_key = 's3_parameters.yaml'
