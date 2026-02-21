@@ -33,22 +33,15 @@ class Ranking:
 
         return frame
 
-    def exc(self, instances: pd.DataFrame) -> pd.DataFrame:
+    def exc(self, frame: pd.DataFrame) -> pd.DataFrame:
         """
 
-        :param instances:
+        :param frame:
         :return:
         """
 
+        data = frame.copy()
+        rankings = self.__rankings(data=data)
+        hence = data.merge(rankings.drop(columns=['catchment_name']), how='left', on=['catchment_id'])
 
-        __points = instances['points'].unique()
-
-        computation = []
-        for points in __points:
-            data = instances.copy().loc[instances['points'] == points, :]
-            rankings = self.__rankings(data=data)
-            hence = data.merge(rankings.drop(columns=['catchment_name']), how='left', on=['catchment_id'])
-            computation.append(hence)
-        frame = pd.concat(computation, axis=0, ignore_index=True)
-
-        return frame
+        return hence
