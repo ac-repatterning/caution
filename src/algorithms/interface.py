@@ -49,8 +49,6 @@ class Interface:
             maximum, minimum, latest, median, ending, ..., ranking
         """
 
-        reference.info()
-
         # Delayed tasks
         __data = dask.delayed(src.algorithms.data.Data(arguments=self.__arguments).exc)
         __sequences = dask.delayed(src.algorithms.sequences.Sequences(reference=reference, arguments=self.__arguments).exc)
