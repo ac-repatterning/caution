@@ -61,7 +61,8 @@ class Setup:
         directories.cleanup(path=self.__configurations.warehouse)
 
         states = [directories.create(p)
-                  for p in [self.__configurations.menu_, self.__configurations.points_, self.__configurations.maps_]]
+                  for p in [self.__configurations.menu_, self.__configurations.points_,
+                            self.__configurations.maps_, self.__configurations.series_]]
 
         return all(states)
 
