@@ -1,7 +1,6 @@
 """Module illustrate.py"""
 import os
 
-import branca.colormap
 import folium
 import geopandas
 
@@ -44,8 +43,8 @@ class Illustrate:
         """
 
         # Colours
-        colours: branca.colormap.StepColormap = branca.colormap.LinearColormap(
-            ['black', 'brown', 'orange']).to_step(len(self.__parcels))
+        # colours: branca.colormap.StepColormap = branca.colormap.LinearColormap(
+        #     ['black', 'brown', 'orange']).to_step(len(self.__parcels))
 
         # Custom drawing functions
         custom = src.cartography.custom.Custom()
@@ -80,9 +79,7 @@ class Illustrate:
                 data = instances.to_crs(epsg=3857),
                 name=f'{parcel.catchment_name}',
                 marker=folium.CircleMarker(
-                    radius=22.5, weight=4, stroke=False, fill=True,
-                    color=colours(parcel.decimal)
-                ),
+                    radius=27.5, weight=4, stroke=False, fill=True),
                 tooltip=folium.GeoJsonTooltip(
                     fields=['latest', 'maximum', 'median', 'station_name', 'river_name', 'catchment_name'],
                     aliases=['latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)', 'Station', 'River/Water', 'Catchment']),
@@ -91,12 +88,7 @@ class Illustrate:
                                                     lower=feature['properties']['lower'],
                                                     upper=feature['properties']['upper']),
                     "fillColor": custom.f_fill_colour(feature['properties']['latest']),
-                    # "opacity": custom.f_opacity(feature['properties']['latest'],
-                    #                             lower=feature['properties']['lower'],
-                    #                             upper=feature['properties']['upper']),
-                    "radius": custom.f_radius(feature['properties']['latest']),
-                    # "stroke": custom.f_stroke(feature['properties']['latest']),
-                    # "fill": custom.f_fill(feature['properties']['latest']),
+                    "radius": custom.f_radius(feature['properties']['latest'])
                 },
                 zoom_on_click=True,
                 show=show
