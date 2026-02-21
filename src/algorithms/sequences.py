@@ -1,11 +1,9 @@
 """Modules sequences.py"""
-import logging
+import json
 import os
 
 import numpy as np
 import pandas as pd
-
-import json
 
 import config
 import src.elements.partitions as pr
@@ -29,6 +27,8 @@ class Sequences:
 
         self.__configurations = config.Config()
         self.__objects = src.functions.objects.Objects()
+        self.__fields = ['station_id', 'station_name', 'catchment_id', 'catchment_name',
+                         'ts_id', 'latitude', 'longitude', 'river_name']
 
         # time intervals (hours), and the corresponding number of points that span each time interval
         self.__tau: float  = float(arguments.get('tau'))
@@ -70,12 +70,12 @@ class Sequences:
         :return:
         """
 
-        attributes: pd.Series = self.__reference.loc[self.__reference['ts_id'] == partition.ts_id, :][0]
-        logging.info('ATTRIBUTES:\n%s', attributes)
+        attributes = self.__reference.loc[self.__reference['ts_id'] == partition.ts_id, :]
+        metadata = attributes[self.__fields][:1].squeeze()
 
         string = values.to_json(orient='split')
         nodes: dict = json.loads(string)
-        nodes.update(attributes.to_dict())
+        nodes.update(metadata.to_dict())
 
         return self.__objects.write(
             nodes=nodes, path=os.path.join(self.__configurations.series_, f'{partition.ts_id}.json'))
