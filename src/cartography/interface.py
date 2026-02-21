@@ -1,5 +1,5 @@
 """Module interface.py"""
-import logging
+
 import io
 
 import boto3
