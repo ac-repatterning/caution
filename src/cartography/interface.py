@@ -72,14 +72,11 @@ class Interface:
         coarse = self.__get_coarse_boundaries()
 
         __data = self.__get_data()
-        logging.info(__data)
 
         limits = __data.copy()[['catchment_id', 'latest']].groupby(
             by=['catchment_id']).aggregate(lower=('latest', 'min'), upper=('latest', 'max'))
-        logging.info(limits)
 
         data = __data.copy().merge(limits.reset_index(drop=False), how='left', on='catchment_id')
-        logging.info(data)
 
         src.cartography.illustrate.Illustrate(
             data=data, coarse=coarse).exc(n_catchments_visible=n_catchments_visible)
