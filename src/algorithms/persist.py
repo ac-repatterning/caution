@@ -67,7 +67,7 @@ class Persist:
 
         # Negatives & Positives
         computations = []
-        for direction in self.__names.keys():
+        for direction, _ in self.__names.items():
             nodes = self.__get_nodes(direction=direction)
             message = self.__persist(nodes=nodes, direction=direction)
             computations.append(message)
