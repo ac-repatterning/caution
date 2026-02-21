@@ -23,20 +23,17 @@ class Valuations:
 
         _s_max = sequences['sign'].values[sequences['metric'].idxmax()]
         _s_min = sequences['sign'].values[sequences['metric'].idxmin()]
-        values = sequences['approximation'].values
 
         aggregates = pd.DataFrame(
             data={'maximum': _s_max * sequences['metric'].max(axis=0),
                   'minimum': _s_min * sequences['metric'].min(axis=0),
-                  'latest': values[-1:],
-                  'median': np.nanquantile(values, q=0.5)})
+                  'latest': sequences['approximation'].values[-1:],
+                  'direction': sequences['sign'].values[-1:],
+                  'median': np.nanquantile(sequences['approximation'].values, q=0.5)})
 
         aggregates['ending'] = sequences['timestamp'].max()
 
         return aggregates
-
-
-
 
     def exc(self, sequences: pd.DataFrame, partition: pr.Partitions) -> pd.DataFrame:
         """
