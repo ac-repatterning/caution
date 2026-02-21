@@ -21,7 +21,7 @@ class Custom:
         """
 
         minimum = 8.5
-        maximum = 22.5
+        maximum = 27.5
 
         factor = np.abs(value)/(1 + np.abs(value))
         est = minimum + factor*(maximum - minimum)
@@ -39,8 +39,8 @@ class Custom:
         :return:
         """
 
-        minimum = 0.35
-        maximum = 0.95
+        minimum = 0.325
+        maximum = 0.950
 
         factor = (value - lower)/np.sqrt(1 + np.power(upper - lower, 2))
         est = minimum + factor*(maximum - minimum)
@@ -66,3 +66,13 @@ class Custom:
         """
 
         return value >= 0
+
+    @staticmethod
+    def f_fill_colour(value: float) -> str:
+        """
+
+        :param value:
+        :return:
+        """
+
+        return 'black' if value >= 0 else '#800000'
