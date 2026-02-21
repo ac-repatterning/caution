@@ -34,12 +34,11 @@ class Illustrate:
         self.__c_latitude, self.__c_longitude = src.cartography.centroids.Centroids(blob=self.__data).__call__()
         self.__parcels: list[pcl.Parcel] = src.cartography.parcels.Parcels(data=self.__data).exc()
 
-    def exc(self, points: int, n_catchments_visible: int):
+    def exc(self, n_catchments_visible: int):
         """
         popup=folium.GeoJsonPopup(fields=['station_name', 'latest', 'maximum', 'median'],
                                   aliases=['Station Name', 'latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)'])
 
-        :param points: 1 -> 0.25 hours, 4 -> 1 hour, etc.
         :param n_catchments_visible: The number of catchment data layers that are visible by default.
         :return:
         """
@@ -104,5 +103,5 @@ class Illustrate:
         folium.LayerControl().add_to(segments)
 
         # Persist
-        outfile = os.path.join(self.__configurations.maps_, f'{points:04d}.html')
+        outfile = os.path.join(self.__configurations.maps_, 'map.html')
         segments.save(outfile=outfile)
