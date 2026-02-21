@@ -1,6 +1,7 @@
 """Module interface.py"""
 import logging
 import os
+import glob
 
 import numpy as np
 import pandas as pd
@@ -35,23 +36,14 @@ class Interface:
             nodes=nodes, path=os.path.join(self.__configurations.menu_, 'menu.json'))
 
 
-    def exc(self, points_: np.ndarray, frequency: float):
+    def exc(self, reference: pd.DataFrame):
         """
 
-        :param points_:
-        :param frequency:
+        :param reference:
         :return:
         """
 
-        # Menu codes
-        codes = [f'{p:04d}' for p in points_]
+        listing = glob.glob(os.path.join(self.__configurations.series_, '*.json'))
+        logging.info(listing)
 
-        # Menu Names
-        hours = frequency * points_
-        names = [f'{h} hours' if h != 1 else f'{int(h)} hour' for h in hours ]
 
-        # Build the menu
-        frame = pd.DataFrame(data={'desc': codes, 'name': names})
-        message = self.__menu(frame=frame)
-
-        logging.info('Menu ->\n%s', message)
