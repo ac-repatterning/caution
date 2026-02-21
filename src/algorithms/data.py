@@ -33,7 +33,7 @@ class Data:
         try:
             block: pd.DataFrame = ddf.read_csv(
                 keys, header=0, usecols=list(self.__dtype.keys()), dtype=self.__dtype).compute()
-        except ImportError as err:
+        except OSError as err:
             raise err from err
 
         block.reset_index(drop=True, inplace=True)
