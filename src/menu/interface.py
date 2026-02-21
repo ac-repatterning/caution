@@ -5,6 +5,7 @@ import glob
 
 import numpy as np
 import pandas as pd
+import pathlib
 
 import config
 import src.functions.objects
@@ -43,7 +44,11 @@ class Interface:
         :return:
         """
 
-        listing = glob.glob(os.path.join(self.__configurations.series_, '*.json'))
-        logging.info(listing)
+        listings = glob.glob(os.path.join(self.__configurations.series_, '*.json'))
+        logging.info(listings)
 
+        codes = [int(pathlib.Path(listing).stem) for listing in listings]
+        logging.info(codes)
 
+        values = reference.loc[reference['ts_id'].isin(codes), ['ts_id', 'station_name', 'catchment_name']]
+        logging.info(values)
