@@ -8,8 +8,8 @@ import geopandas
 import config
 import src.cartography.centroids
 import src.cartography.custom
-import src.cartography.parcels
 import src.cartography.metadata
+import src.cartography.parcels
 import src.elements.background as bck
 import src.elements.parcel as pcl
 
@@ -50,9 +50,10 @@ class Illustrate:
         # Custom drawing functions
         custom = src.cartography.custom.Custom()
 
-        # Base Layer
+        # Base Layer: TileLayer objects aid the security of map service details.
         segments = folium.Map(location=[self.__c_latitude, self.__c_longitude],
-                              tiles=background.tiles, attr=background.attr,
+                              tiles=folium.raster_layers.TileLayer(tiles=background.tiles, name=background.filename, attr=background.attr),
+                              attr=background.attr,
                               zoom_start=background.zoom_start, min_zoom=background.min_zoom, max_zoom=background.max_zoom,
                               crs=background.crs, max_bounds=True)
 
