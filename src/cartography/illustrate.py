@@ -2,6 +2,7 @@
 import os
 
 import folium
+import folium.plugins
 import geopandas
 
 import config
@@ -97,6 +98,14 @@ class Illustrate:
             ).add_to(segments)
 
         folium.LayerControl().add_to(segments)
+
+        # Drawing Tool
+        folium.plugins.Draw(
+            export=False, position='bottomleft', show_geometry_on_click=False,
+            draw_options={'polyline': False, 'polygon': False, 'rectangle': False, 'marker': False,
+                          'circle': {'shapeOptions': {'color': '#6495ed', 'stroke': True, 'dashArray': '', 'opacity': 0.35}},
+                          'circlemarker': {'color': '#000000', 'opacity': 0.85, 'fillOpacity': 0.35}}
+        ).add_to(segments)
 
         # Persist
         outfile = os.path.join(self.__configurations.maps_, f'{background.filename}.html')
