@@ -20,14 +20,14 @@ class Ranking:
         """
 
         frame = data.copy()[['catchment_id', 'catchment_name', 'latest']].groupby(
-            by=['catchment_id', 'catchment_name']).agg(maximum=('latest', 'max'))
+            by=['catchment_id', 'catchment_name']).agg(metric=('latest', 'max'))
 
         # Convert 'catchment_id' & 'catchment_name' to fields; currently indices.
         frame.reset_index(drop=False, inplace=True)
 
         # Hence
-        frame['rank'] = frame['maximum'].rank(method='first', ascending=False).astype(int)
-        frame.drop(columns='maximum', inplace=True)
+        frame['rank'] = frame['metric'].rank(method='first', ascending=False).astype(int)
+        frame.drop(columns='metric', inplace=True)
         frame.sort_values(by='catchment_name', inplace=True)
         frame.reset_index(drop=True, inplace=True)
 
