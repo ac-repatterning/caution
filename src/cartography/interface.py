@@ -1,14 +1,19 @@
 """Module interface.py"""
 
+import logging
+
 import io
 
 import boto3
 import geopandas
 import pandas as pd
+import dask
 
 import src.cartography.illustrate
 import src.elements.s3_parameters as s3p
+import src.elements.background as bck
 import src.s3.unload
+import src.cartography.backgrounds
 
 
 class Interface:
@@ -30,6 +35,8 @@ class Interface:
         self.__connector = connector
         self.__s3_parameters = s3_parameters
         self.__frame = frame
+
+        self.__backgrounds: list[bck.Background] = src.cartography.backgrounds.Backgrounds(connector=self.__connector)()
 
     def __get_coarse_boundaries(self) -> geopandas.GeoDataFrame:
         """
@@ -62,6 +69,20 @@ class Interface:
 
         return data
 
+    @staticmethod
+    def __get_limits(data: geopandas.GeoDataFrame):
+        """
+
+        :param data:
+        :return:
+        """
+
+        limits = data.copy()[['catchment_id', 'latest']].groupby(
+            by=['catchment_id']).aggregate(lower=('latest', 'min'), upper=('latest', 'max'))
+        frame = data.copy().merge(limits.reset_index(drop=False), how='left', on='catchment_id')
+
+        return frame
+
     def exc(self, n_catchments_visible: int):
         """
 
@@ -69,12 +90,19 @@ class Interface:
         :return:
         """
 
+        # Catchment boundaries
         coarse = self.__get_coarse_boundaries()
 
-        __data = self.__get_data()
-        limits = __data.copy()[['catchment_id', 'latest']].groupby(
-            by=['catchment_id']).aggregate(lower=('latest', 'min'), upper=('latest', 'max'))
-        data = __data.copy().merge(limits.reset_index(drop=False), how='left', on='catchment_id')
+        # Metrics
+        __data: geopandas.GeoDataFrame = self.__get_data()
+        data = self.__get_limits(data=__data)
 
-        src.cartography.illustrate.Illustrate(
-            data=data, coarse=coarse).exc(n_catchments_visible=n_catchments_visible)
+        # Illustrate
+        __illustrate = dask.delayed(src.cartography.illustrate.Illustrate(data=data, coarse=coarse).exc)
+
+        computations = []
+        for background in self.__backgrounds:
+            message = __illustrate(n_catchments_visible=n_catchments_visible, background=background)
+            computations.append(message)
+        messages = dask.compute(computations, scheduler='processes')
+        logging.info(messages)
