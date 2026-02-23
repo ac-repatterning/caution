@@ -31,7 +31,8 @@ class Valuations:
                   'direction': sequences['sign'].values[-1:],
                   'median': np.nanquantile(sequences['approximation'].values, q=0.5)})
 
-        aggregates['ending'] = sequences['timestamp'].max()
+        aggregates['p_ending'] = sequences['timestamp'].max()
+        aggregates['p_beginning'] = sequences['timestamp'].min()
 
         return aggregates
 
