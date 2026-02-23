@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 import config
-import src.elements.partitions as pr
+import src.elements.partition as pr
 import src.functions.objects
 
 
@@ -62,7 +62,7 @@ class Sequences:
 
         return weights
 
-    def __persist(self, values: pd.DataFrame, partition: pr.Partitions) -> str:
+    def __persist(self, values: pd.DataFrame, partition: pr.Partition) -> str:
         """
 
         :param values:
@@ -80,7 +80,7 @@ class Sequences:
         return self.__objects.write(
             nodes=nodes, path=os.path.join(self.__configurations.series_, f'{partition.ts_id}.json'))
 
-    def exc(self, data: pd.DataFrame, partition: pr.Partitions) -> pd.DataFrame:
+    def exc(self, data: pd.DataFrame, partition: pr.Partition) -> pd.DataFrame:
         """
 
         :param data: Consisting of fields (a) timestamp, (b) measure
