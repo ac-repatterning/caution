@@ -26,7 +26,7 @@ class Config:
         # Template
         self.s3_parameters_key = 's3_parameters.yaml'
         self.arguments_key = 'caution/arguments.json'
-        self.metadata_ = 'caution/external'
+        self.metadata_key = 'caution/external/metadata.json'
 
         # The storage prefix
         self.prefix = 'warehouse/caution'
