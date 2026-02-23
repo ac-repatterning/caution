@@ -36,8 +36,6 @@ class Illustrate:
 
     def exc(self, n_catchments_visible: int, background: bck.Background) -> str:
         """
-        popup=folium.GeoJsonPopup(fields=['station_name', 'latest', 'maximum', 'median'],
-                                  aliases=['Station Name', 'latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)'])
 
         :param n_catchments_visible: The number of catchment data layers that are visible by default.
         :param background: Refer to src/elements/background.py
