@@ -8,7 +8,7 @@ import src.algorithms.persist
 import src.algorithms.ranking
 import src.algorithms.valuations
 import src.algorithms.sequences
-import src.elements.partitions as pr
+import src.elements.partition as pr
 
 
 class Interface:
@@ -38,7 +38,7 @@ class Interface:
 
         return keys.to_list()
 
-    def exc(self, partitions: list[pr.Partitions], reference: pd.DataFrame) -> pd.DataFrame:
+    def exc(self, partitions: list[pr.Partition], reference: pd.DataFrame) -> pd.DataFrame:
         """
         streams = src.functions.streams.Streams()
         streams.write(blob=instances, path=os.path.join(self.__configurations.data_, 'instances.csv'))
