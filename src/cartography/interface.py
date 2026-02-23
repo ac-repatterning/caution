@@ -72,10 +72,8 @@ class Interface:
         coarse = self.__get_coarse_boundaries()
 
         __data = self.__get_data()
-
         limits = __data.copy()[['catchment_id', 'latest']].groupby(
             by=['catchment_id']).aggregate(lower=('latest', 'min'), upper=('latest', 'max'))
-
         data = __data.copy().merge(limits.reset_index(drop=False), how='left', on='catchment_id')
 
         src.cartography.illustrate.Illustrate(
