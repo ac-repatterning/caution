@@ -30,3 +30,7 @@ class Config:
 
         # The storage prefix
         self.prefix = 'warehouse/risks'
+
+        # Project metadata
+        self.project_tag = 'hydrography'
+        self.project_key_name = 'HydrographyProject'
