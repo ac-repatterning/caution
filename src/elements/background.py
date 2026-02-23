@@ -1,4 +1,4 @@
-"""Module partitions.py"""
+"""Module background.py"""
 import typing
 
 
