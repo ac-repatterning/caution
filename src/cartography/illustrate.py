@@ -52,7 +52,8 @@ class Illustrate:
 
         # Base Layer: TileLayer objects aid the security of map service details.
         segments = folium.Map(location=[self.__c_latitude, self.__c_longitude],
-                              tiles=folium.raster_layers.TileLayer(tiles=background.tiles, name=background.filename, attr=background.attr),
+                              tiles=folium.raster_layers.TileLayer(
+                                  tiles=background.tiles, name=background.filename, attr=background.attr),
                               attr=background.attr,
                               zoom_start=background.zoom_start, min_zoom=background.min_zoom, max_zoom=background.max_zoom,
                               crs=background.crs, max_bounds=True)
