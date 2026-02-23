@@ -8,6 +8,7 @@ import config
 import src.cartography.centroids
 import src.cartography.custom
 import src.cartography.parcels
+import src.elements.background as bck
 import src.elements.parcel as pcl
 
 
@@ -33,12 +34,13 @@ class Illustrate:
         self.__c_latitude, self.__c_longitude = src.cartography.centroids.Centroids(blob=self.__data).__call__()
         self.__parcels: list[pcl.Parcel] = src.cartography.parcels.Parcels(data=self.__data).exc()
 
-    def exc(self, n_catchments_visible: int):
+    def exc(self, n_catchments_visible: int, background: bck.Background) -> str:
         """
         popup=folium.GeoJsonPopup(fields=['station_name', 'latest', 'maximum', 'median'],
                                   aliases=['Station Name', 'latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)'])
 
         :param n_catchments_visible: The number of catchment data layers that are visible by default.
+        :param background: Refer to src/elements/background.py
         :return:
         """
 
@@ -50,7 +52,10 @@ class Illustrate:
         custom = src.cartography.custom.Custom()
 
         # Base Layer
-        segments = folium.Map(location=[self.__c_latitude, self.__c_longitude], tiles='OpenStreetMap', zoom_start=7)
+        segments = folium.Map(location=[self.__c_latitude, self.__c_longitude],
+                              tiles=background.tiles, attr=background.attr,
+                              zoom_start=background.zoom_start, min_zoom=background.min_zoom, max_zoom=background.max_zoom,
+                              crs=background.crs, max_bounds=True)
 
         # Uncontrollable Layer
         folium.GeoJson(
@@ -97,5 +102,7 @@ class Illustrate:
         folium.LayerControl().add_to(segments)
 
         # Persist
-        outfile = os.path.join(self.__configurations.maps_, 'map.html')
+        outfile = os.path.join(self.__configurations.maps_, f'{background.filename}.html')
         segments.save(outfile=outfile)
+
+        return f'{background.filename}.html'
