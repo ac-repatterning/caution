@@ -1,14 +1,19 @@
 """Module interface.py"""
+
 import logging
+
 import io
 
 import boto3
 import geopandas
 import pandas as pd
+import dask
 
 import src.cartography.illustrate
 import src.elements.s3_parameters as s3p
+import src.elements.background as bck
 import src.s3.unload
+import src.cartography.backgrounds
 
 
 class Interface:
@@ -17,21 +22,21 @@ class Interface:
     """
 
     def __init__(self, connector: boto3.session.Session, s3_parameters: s3p.S3Parameters,
-                 instances: pd.DataFrame):
+                 frame: pd.DataFrame):
         """
 
         :param connector: A boto3 session instance, it retrieves the developer's <default> Amazon
                           Web Services (AWS) profile details, which allows for programmatic interaction with AWS.
         :param s3_parameters: The overarching S3 parameters settings of this project, e.g., region code
                               name, buckets, etc.
-        :param instances: A frame of metrics per gauge instance, and with respect to time; in the
-                          latter case, 1 time point (0.25 hours), 4 time points (1 hour), etc.
+        :param frame: A frame of metrics per gauge instance.
         """
 
         self.__connector = connector
         self.__s3_parameters = s3_parameters
+        self.__frame = frame
 
-        self.__instances = instances
+        self.__backgrounds: list[bck.Background] = src.cartography.backgrounds.Backgrounds(connector=self.__connector)()
 
     def __get_coarse_boundaries(self) -> geopandas.GeoDataFrame:
         """
@@ -46,14 +51,13 @@ class Interface:
 
         return coarse
 
-    def __get_data(self, points: int) -> geopandas.GeoDataFrame:
+    def __get_data(self) -> geopandas.GeoDataFrame:
         """
 
-        :param points: 1 -> 0.25 hours, 4 -> 1 hour, etc.
         :return:
         """
 
-        values = self.__instances.copy().loc[self.__instances['points'] == points, :]
+        values = self.__frame
         data = geopandas.GeoDataFrame(
             values,
             geometry=geopandas.points_from_xy(values['longitude'], values['latitude'])
@@ -65,6 +69,20 @@ class Interface:
 
         return data
 
+    @staticmethod
+    def __get_limits(data: geopandas.GeoDataFrame):
+        """
+
+        :param data:
+        :return:
+        """
+
+        limits = data.copy()[['catchment_id', 'latest']].groupby(
+            by=['catchment_id']).aggregate(lower=('latest', 'min'), upper=('latest', 'max'))
+        frame = data.copy().merge(limits.reset_index(drop=False), how='left', on='catchment_id')
+
+        return frame
+
     def exc(self, n_catchments_visible: int):
         """
 
@@ -72,19 +90,19 @@ class Interface:
         :return:
         """
 
+        # Catchment boundaries
         coarse = self.__get_coarse_boundaries()
 
-        for points in self.__instances['points'].unique():
+        # Metrics
+        __data: geopandas.GeoDataFrame = self.__get_data()
+        data = self.__get_limits(data=__data)
 
-            __data = self.__get_data(points=points)
-            logging.info(__data)
+        # Illustrate
+        __illustrate = dask.delayed(src.cartography.illustrate.Illustrate(data=data, coarse=coarse).exc)
 
-            limits = __data.copy()[['catchment_id', 'latest']].groupby(
-                by=['catchment_id']).aggregate(lower=('latest', 'min'), upper=('latest', 'max'))
-            logging.info(limits)
-
-            data = __data.copy().merge(limits.reset_index(drop=False), how='left', on='catchment_id')
-            logging.info(data)
-
-            src.cartography.illustrate.Illustrate(data=data, coarse=coarse).exc(
-                points=points, n_catchments_visible=n_catchments_visible)
+        computations = []
+        for background in self.__backgrounds:
+            message = __illustrate(n_catchments_visible=n_catchments_visible, background=background)
+            computations.append(message)
+        messages = dask.compute(computations, scheduler='processes')
+        logging.info(messages)

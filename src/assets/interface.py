@@ -6,7 +6,7 @@ import pandas as pd
 import src.assets.gauges
 import src.assets.partitions
 import src.assets.reference
-import src.elements.partitions as pr
+import src.elements.partition as pr
 import src.elements.s3_parameters as s3p
 import src.elements.service as sr
 
@@ -33,7 +33,7 @@ class Interface:
         self.__arguments = arguments
 
     @staticmethod
-    def __structure(partitions: pd.DataFrame) -> list[pr.Partitions]:
+    def __structure(partitions: pd.DataFrame) -> list[pr.Partition]:
         """
 
         :param partitions: The time series partitions.
@@ -42,9 +42,9 @@ class Interface:
 
         values: list[dict] = partitions.copy().reset_index(drop=True).to_dict(orient='records')
 
-        return [pr.Partitions(**value) for value in values]
+        return [pr.Partition(**value) for value in values]
 
-    def exc(self) -> typing.Tuple[list[pr.Partitions], pd.DataFrame, pd.DataFrame]:
+    def exc(self) -> typing.Tuple[list[pr.Partition], pd.DataFrame, pd.DataFrame]:
         """
 
         :return:

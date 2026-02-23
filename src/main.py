@@ -21,16 +21,15 @@ def main():
         service=service, s3_parameters=s3_parameters, arguments=arguments).exc()
 
     # Hence
-    instances = src.algorithms.interface.Interface(listings=listings, arguments=arguments).exc(
+    frame = src.algorithms.interface.Interface(listings=listings, arguments=arguments).exc(
         partitions=partitions, reference=reference)
-    instances.info()
+    frame.info()
 
     src.cartography.interface.Interface(
-        connector=connector, s3_parameters=s3_parameters, instances=instances).exc(
+        connector=connector, s3_parameters=s3_parameters, frame=frame).exc(
         n_catchments_visible=arguments.get('rates').get('n_catchments_visible'))
 
-    src.menu.interface.Interface().exc(
-        points_=instances['points'].unique(), frequency=arguments.get('frequency'))
+    src.menu.interface.Interface().exc(reference=reference)
 
     # Transferring calculations to an Amazon S3 (Simple Storage Service) bucket
     src.transfer.interface.Interface(

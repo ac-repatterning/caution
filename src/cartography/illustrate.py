@@ -1,14 +1,16 @@
 """Module illustrate.py"""
 import os
 
-import branca.colormap
 import folium
+import folium.plugins
 import geopandas
 
 import config
 import src.cartography.centroids
 import src.cartography.custom
+import src.cartography.metadata
 import src.cartography.parcels
+import src.elements.background as bck
 import src.elements.parcel as pcl
 
 
@@ -30,29 +32,31 @@ class Illustrate:
         # Configurations
         self.__configurations = config.Config()
 
+        # Metadata: Gauge Station
+        self.__metadata = src.cartography.metadata.Metadata()
+
         # Centroid, Parcels
         self.__c_latitude, self.__c_longitude = src.cartography.centroids.Centroids(blob=self.__data).__call__()
         self.__parcels: list[pcl.Parcel] = src.cartography.parcels.Parcels(data=self.__data).exc()
 
-    def exc(self, points: int, n_catchments_visible: int):
+    def exc(self, n_catchments_visible: int, background: bck.Background) -> str:
         """
-        popup=folium.GeoJsonPopup(fields=['station_name', 'latest', 'maximum', 'median'],
-                                  aliases=['Station Name', 'latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)'])
 
-        :param points: 1 -> 0.25 hours, 4 -> 1 hour, etc.
         :param n_catchments_visible: The number of catchment data layers that are visible by default.
+        :param background: Refer to src/elements/background.py
         :return:
         """
-
-        # Colours
-        colours: branca.colormap.StepColormap = branca.colormap.LinearColormap(
-            ['black', 'brown', 'orange']).to_step(len(self.__parcels))
 
         # Custom drawing functions
         custom = src.cartography.custom.Custom()
 
-        # Base Layer
-        segments = folium.Map(location=[self.__c_latitude, self.__c_longitude], tiles='OpenStreetMap', zoom_start=7)
+        # Base Layer: TileLayer objects aid the security of map service details.
+        segments = folium.Map(location=[self.__c_latitude, self.__c_longitude],
+                              tiles=folium.raster_layers.TileLayer(
+                                  tiles=background.tiles, name=background.filename, attr=background.attr),
+                              attr=background.attr,
+                              zoom_start=background.zoom_start, min_zoom=background.min_zoom, max_zoom=background.max_zoom,
+                              crs=background.crs, max_bounds=True)
 
         # Uncontrollable Layer
         folium.GeoJson(
@@ -77,32 +81,36 @@ class Illustrate:
             instances = self.__data.copy().loc[self.__data['catchment_id'] == parcel.catchment_id, :]
 
             # Draw
+            on_each_feature = folium.utilities.JsCode(self.__metadata())
             folium.GeoJson(
                 data = instances.to_crs(epsg=3857),
                 name=f'{parcel.catchment_name}',
                 marker=folium.CircleMarker(
-                    radius=22.5, weight=4, color=colours(parcel.decimal),
-                    fillColor=colours(parcel.decimal), fill_opacity=0.65),
-                tooltip=folium.GeoJsonTooltip(
-                    fields=['latest', 'maximum', 'median', 'station_name', 'river_name', 'catchment_name'],
-                    aliases=['latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)', 'Station', 'River/Water', 'Catchment']),
+                    radius=27.5, weight=4, stroke=False, fill=True),
                 style_function=lambda feature: {
                     "fillOpacity": custom.f_opacity(feature['properties']['latest'],
                                                     lower=feature['properties']['lower'],
                                                     upper=feature['properties']['upper']),
-                    "opacity": custom.f_opacity(feature['properties']['latest'],
-                                                lower=feature['properties']['lower'],
-                                                upper=feature['properties']['upper']),
-                    "radius": custom.f_radius(feature['properties']['latest']),
-                    "stroke": custom.f_stroke(feature['properties']['latest']),
-                    "fill": custom.f_fill(feature['properties']['latest'])
+                    "fillColor": custom.f_fill_colour(feature['properties']['latest']),
+                    "radius": custom.f_radius(feature['properties']['latest'])
                 },
                 zoom_on_click=True,
+                on_each_feature=on_each_feature,
                 show=show
             ).add_to(segments)
 
         folium.LayerControl().add_to(segments)
 
+        # Drawing Tool
+        folium.plugins.Draw(
+            export=False, position='bottomleft', show_geometry_on_click=False,
+            draw_options={'polyline': False, 'polygon': False, 'rectangle': False, 'marker': False,
+                          'circle': {'shapeOptions': {'color': '#6495ed', 'stroke': True, 'dashArray': '', 'opacity': 0.35}},
+                          'circlemarker': {'color': '#000000', 'opacity': 0.85, 'fillOpacity': 0.35}}
+        ).add_to(segments)
+
         # Persist
-        outfile = os.path.join(self.__configurations.maps_, f'{points:04d}.html')
+        outfile = os.path.join(self.__configurations.maps_, f'{background.filename}.html')
         segments.save(outfile=outfile)
+
+        return f'{background.filename}.html'

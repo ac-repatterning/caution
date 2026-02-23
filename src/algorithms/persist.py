@@ -2,7 +2,6 @@
 import logging
 import os
 
-import numpy as np
 import pandas as pd
 
 import config
@@ -16,46 +15,49 @@ class Persist:
     Persist
     """
 
-    def __init__(self, instances: pd.DataFrame):
+    def __init__(self, frame: pd.DataFrame):
         """
 
-        :param instances: The weighted rates of change of river levels with respect to one or more time spans.
+        :param frame:
         """
 
-        self.__instances = instances
-        self.__points_: np.ndarray = instances['points'].unique()
+        self.__frame = frame
 
-        # The storage area
+        # Names
+        self.__names: dict = {-1: 'negative', 1: 'positive'}
+
+        # Instances
         self.__configurations = config.Config()
-
-        # For creating JSON files
         self.__objects = src.functions.objects.Objects()
 
-    def __get_nodes(self, points: int) -> dict | list[dict]:
+    def __get_nodes(self, direction: int) -> dict | list[dict]:
         """
-        string = frame.copy().to_json(orient='split')
-        json.loads(string)
 
-        :param points: The number of points across which rate calculations are made, e.g., 1 -> 0.25 hours,
-                       4 -> 1 hour, etc.
+        :param direction: {-1, +1}
         :return:
         """
 
-        frame: pd.DataFrame = self.__instances.copy().loc[self.__instances['points'] == points, :]
+        frame: pd.DataFrame = self.__frame.copy().loc[self.__frame['direction'] == direction, :]
+        if frame.empty:
+            return {}
+
         nodes = src.algorithms.disaggregates.Disaggregates(frame=frame)()
 
         return nodes
 
-    def __persist(self, nodes, points):
+    def __persist(self, nodes: dict| list[dict], direction: int):
         """
 
         :param nodes:
-        :param points:
+        :param direction:
         :return:
         """
 
+        if not nodes:
+            return f'{self.__names.get('direction')}: empty'
+
         return self.__objects.write(
-            nodes=nodes, path=os.path.join(self.__configurations.points_, f'{points:04d}.json'))
+            nodes=nodes, path=os.path.join(self.__configurations.points_, f'{self.__names.get(direction)}.json'))
 
     def exc(self):
         """
@@ -63,11 +65,10 @@ class Persist:
         :return:
         """
 
-        # Each `self.__points_` array value denotes the number of points across which rate calculations
-        # are made, e.g., 1 -> 0.25 hours, 4 -> 1 hour, etc.
+        # Negatives & Positives
         computations = []
-        for points in self.__points_:
-            nodes = self.__get_nodes(points=int(points))
-            message = self.__persist(nodes=nodes, points=points)
+        for direction, _ in self.__names.items():
+            nodes = self.__get_nodes(direction=direction)
+            message = self.__persist(nodes=nodes, direction=direction)
             computations.append(message)
         logging.info(computations)

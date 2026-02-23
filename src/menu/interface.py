@@ -1,8 +1,8 @@
 """Module interface.py"""
-import logging
+import glob
 import os
+import pathlib
 
-import numpy as np
 import pandas as pd
 
 import config
@@ -34,24 +34,20 @@ class Interface:
         return self.__objects.write(
             nodes=nodes, path=os.path.join(self.__configurations.menu_, 'menu.json'))
 
-
-    def exc(self, points_: np.ndarray, frequency: float):
+    def exc(self, reference: pd.DataFrame):
         """
 
-        :param points_:
-        :param frequency:
+        :param reference:
         :return:
         """
 
-        # Menu codes
-        codes = [f'{p:04d}' for p in points_]
+        listings = glob.glob(os.path.join(self.__configurations.series_, '*.json'))
+        codes = [int(pathlib.Path(listing).stem) for listing in listings]
 
-        # Menu Names
-        hours = frequency * points_
-        names = [f'{h} hours' if h != 1 else f'{int(h)} hour' for h in hours ]
+        values = reference.loc[reference['ts_id'].isin(codes), ['ts_id', 'station_name', 'catchment_name']]
+        values = values.assign(name=values['station_name'] + '/' + values['catchment_name'])
 
-        # Build the menu
-        frame = pd.DataFrame(data={'desc': codes, 'name': names})
-        message = self.__menu(frame=frame)
+        frame = pd.DataFrame(data={'desc': values['ts_id'].to_numpy(),
+                                   'name': values['name'].to_numpy()})
 
-        logging.info('Menu ->\n%s', message)
+        self.__menu(frame=frame)
