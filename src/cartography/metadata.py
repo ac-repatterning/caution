@@ -25,8 +25,8 @@ class Metadata:
                         'Median: ' + feature.properties.median.toFixed(4) + ' mm/hr<br>' +
                         'River/Water: ' + feature.properties.river_name + '<br>' +
                         'Catchment: ' + feature.properties.catchment_name + '<br><br>' +
-                        '<b>PERIOD:</b>' + new Date(feature.properties.p_beginning).toISOString() + '<br>' 
+                        '<b>PERIOD:</b> ' + new Date(feature.properties.p_beginning).toISOString() + ' &Rarr; ' +
+                        new Date(feature.properties.p_ending).toISOString() + '.<br>'
                     );
-                    
                 }
                 """
