@@ -32,8 +32,8 @@ def main():
     src.menu.interface.Interface().exc(reference=reference)
 
     # Transferring calculations to an Amazon S3 (Simple Storage Service) bucket
-    # src.transfer.interface.Interface(
-    #     connector=connector, service=service, s3_parameters=s3_parameters).exc()
+    src.transfer.interface.Interface(
+        connector=connector, service=service, s3_parameters=s3_parameters).exc()
 
     # Cache
     src.functions.cache.Cache().exc()
