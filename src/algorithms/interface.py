@@ -56,7 +56,7 @@ class Interface:
 
         # Compute
         computations = []
-        for partition in partitions[:64]:
+        for partition in partitions:
             keys = self.__get_keys(ts_id=partition.ts_id)
             data = __data(keys=keys)
             sequences = __sequences(data=data, partition=partition)
