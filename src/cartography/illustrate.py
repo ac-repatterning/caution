@@ -8,6 +8,7 @@ import config
 import src.cartography.centroids
 import src.cartography.custom
 import src.cartography.parcels
+import src.cartography.metadata
 import src.elements.background as bck
 import src.elements.parcel as pcl
 
@@ -29,6 +30,9 @@ class Illustrate:
 
         # Configurations
         self.__configurations = config.Config()
+
+        # Metadata: Gauge Station
+        self.__metadata = src.cartography.metadata.Metadata()
 
         # Centroid, Parcels
         self.__c_latitude, self.__c_longitude = src.cartography.centroids.Centroids(blob=self.__data).__call__()
@@ -78,14 +82,15 @@ class Illustrate:
             instances = self.__data.copy().loc[self.__data['catchment_id'] == parcel.catchment_id, :]
 
             # Draw
+            on_each_feature = folium.utilities.JsCode(self.__metadata())
             folium.GeoJson(
                 data = instances.to_crs(epsg=3857),
                 name=f'{parcel.catchment_name}',
                 marker=folium.CircleMarker(
                     radius=27.5, weight=4, stroke=False, fill=True),
-                tooltip=folium.GeoJsonTooltip(
-                    fields=['latest', 'maximum', 'median', 'station_name', 'river_name', 'catchment_name'],
-                    aliases=['latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)', 'Station', 'River/Water', 'Catchment']),
+                # tooltip=folium.GeoJsonTooltip(
+                #     fields=['latest', 'maximum', 'median', 'station_name', 'river_name', 'catchment_name'],
+                #     aliases=['latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)', 'Station', 'River/Water', 'Catchment']),
                 style_function=lambda feature: {
                     "fillOpacity": custom.f_opacity(feature['properties']['latest'],
                                                     lower=feature['properties']['lower'],
@@ -94,6 +99,7 @@ class Illustrate:
                     "radius": custom.f_radius(feature['properties']['latest'])
                 },
                 zoom_on_click=True,
+                on_each_feature=on_each_feature,
                 show=show
             ).add_to(segments)
 
