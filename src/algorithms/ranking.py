@@ -33,6 +33,27 @@ class Ranking:
 
         return frame
 
+    @staticmethod
+    def __drops(data: pd.DataFrame) -> pd.DataFrame:
+        """
+        For graphing/mapping declines in weighted rates of change
+
+        :param data:
+        :return:
+        """
+
+        frame = data.copy()[['catchment_id', 'latest']].groupby(
+            by=['catchment_id']).agg(metric=('latest', 'min'))
+
+        # Convert 'catchment_id' to a standard field; currently an index field.
+        frame.reset_index(drop=False, inplace=True)
+
+        # Hence
+        frame['drop'] = frame['metric'].rank(method='first', ascending=True).astype(int)
+        frame.drop(columns='metric', inplace=True)
+
+        return frame
+
     def exc(self, frame: pd.DataFrame) -> pd.DataFrame:
         """
 
@@ -42,6 +63,9 @@ class Ranking:
 
         data = frame.copy()
         rankings = self.__rankings(data=data)
+        drops = self.__drops(data=data)
+
         hence = data.merge(rankings.drop(columns=['catchment_name']), how='left', on=['catchment_id'])
+        hence = hence.copy().merge(drops, how='left', on=['catchment_id'])
 
         return hence
