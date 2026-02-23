@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-import src.elements.partitions as pr
+import src.elements.partition as pr
 
 
 class Valuations:
@@ -35,7 +35,7 @@ class Valuations:
 
         return aggregates
 
-    def exc(self, sequences: pd.DataFrame, partition: pr.Partitions) -> pd.DataFrame:
+    def exc(self, sequences: pd.DataFrame, partition: pr.Partition) -> pd.DataFrame:
         """
 
         :param sequences: metric, timestamp, sign, approximation -> whereby approximation = sign * metric
