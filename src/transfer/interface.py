@@ -30,7 +30,7 @@ class Interface:
         self.__s3_parameters: s3p.S3Parameters = s3_parameters
 
         # Metadata
-        self.__metadata = src.transfer.metadata.Metadata(connector=connector)
+        self.__metadata: dict = src.transfer.metadata.Metadata(connector=connector).exc()
 
         # Instances
         self.__configurations = config.Config()
@@ -43,12 +43,9 @@ class Interface:
         :return:
         """
 
-        dictionary = {'points': self.__metadata.exc(name='points.json'),
-                      'menu': self.__metadata.exc(name='menu.json'),
-                      'maps': self.__metadata.exc(name='maps.json')}
 
         frame = frame.assign(
-            metadata = frame['section'].map(dictionary))
+            metadata = frame['section'].map(self.__metadata))
 
         return frame
 
@@ -60,14 +57,16 @@ class Interface:
 
         # The strings for transferring data to Amazon S3 (Simple Storage Service)
         strings: pd.DataFrame = self.__dictionary.exc(
-            path=self.__configurations.risks_,
+            path=self.__configurations.caution_,
             extension='*', prefix=self.__configurations.prefix + '/')
+        logging.info(strings)
 
         # Adding metadata details per instance
         strings = self.__get_metadata(frame=strings.copy())
         logging.info(strings)
 
-        # Prepare
+        '''
+        # Resetting storage area
         src.transfer.cloud.Cloud(
             service=self.__service, s3_parameters=self.__s3_parameters).exc()
 
@@ -76,3 +75,4 @@ class Interface:
             service=self.__service, bucket_name=self.__s3_parameters.external).exc(
             strings=strings, tagging='project=hydrography')
         logging.info(messages)
+        '''
