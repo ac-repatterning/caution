@@ -46,10 +46,6 @@ class Illustrate:
         :return:
         """
 
-        # Colours
-        # colours: branca.colormap.StepColormap = branca.colormap.LinearColormap(
-        #     ['black', 'brown', 'orange']).to_step(len(self.__parcels))
-
         # Custom drawing functions
         custom = src.cartography.custom.Custom()
 
@@ -88,9 +84,6 @@ class Illustrate:
                 name=f'{parcel.catchment_name}',
                 marker=folium.CircleMarker(
                     radius=27.5, weight=4, stroke=False, fill=True),
-                # tooltip=folium.GeoJsonTooltip(
-                #     fields=['latest', 'maximum', 'median', 'station_name', 'river_name', 'catchment_name'],
-                #     aliases=['latest (mm/hr)', 'maximum (mm/hr)', 'median (mm/hr)', 'Station', 'River/Water', 'Catchment']),
                 style_function=lambda feature: {
                     "fillOpacity": custom.f_opacity(feature['properties']['latest'],
                                                     lower=feature['properties']['lower'],
